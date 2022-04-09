@@ -1,0 +1,43 @@
+---
+name: "🔨 Update Machines"
+
+on:
+  push:
+    branches: [master, main]
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, '[skip update]')"
+
+    steps:
+      - name: "Main Server"
+        uses: garygrossgarten/github-action-ssh@release
+        with:
+            command: ${{ secrets.SSH_CMD }}
+            host: ${{ secrets.HOST_MS }}
+            port: ${{ secrets.PORT_MS }}
+            username: ${{ secrets.USER }}
+            privateKey: ${{ secrets.PRIVATE_KEY }}
+        env:
+            CI: true
+      - name: "Backup Server"
+        uses: garygrossgarten/github-action-ssh@release
+        with:
+            command: ${{ secrets.SSH_CMD }}
+            host: ${{ secrets.HOST_MS }}
+            port: ${{ secrets.PORT_BK }}
+            username: ${{ secrets.USER }}
+            privateKey: ${{ secrets.PRIVATE_KEY }}
+        env:
+            CI: true
+      - name: "MIAB"
+        uses: garygrossgarten/github-action-ssh@release
+        with:
+            command: ${{ secrets.SSH_CMD }}
+            host: ${{ secrets.HOST_MIAB }}
+            port: ${{ secrets.PORT_MIAB }}
+            username: ${{ secrets.USER }}
+            privateKey: ${{ secrets.PRIVATE_KEY }}
+        env:
+            CI: true
