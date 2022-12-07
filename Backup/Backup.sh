@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DestFolder_WWW="/root/backups/ms/www/"
+DestFolder_WWW="/root/backups/ms/www"
 DestFolder_WWW_var="/root/backups/ms/www/var-www"
 DestFolder_WWW_apache2="/root/backups/ms/www/etc-apache2"
 DestFolder_WWW_letsencrypt="/root/backups/ms/www/etc-letsencrypt"
