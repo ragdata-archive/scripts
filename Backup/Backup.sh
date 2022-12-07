@@ -16,9 +16,9 @@ mysqldump --all-databases --single-transaction --quick --lock-tables=false -u ro
 rsync -e 'ssh -p 1010' -az /tmp/sql-dump.sql $DestSSHInfo:$DestFolder_WWW/WWW-SQL-Dump.sql
 rm /tmp/sql-dump.sql
 ## /var/www, /etc/apache2, /etc/letsencrypt
-rsync -e 'ssh -p 1010' -azrd --delete /var/www/* $DestSSHInfo:$DestFolder_WWW_var/var-www/
-rsync -e 'ssh -p 1010' -azrd --delete /etc/apache2/* $DestSSHInfo:$DestFolder_WWW_apache2/etc-apache2/
-rsync -e 'ssh -p 1010' -azrd --delete /etc/letsencrypt/* $DestSSHInfo:$DestFolder_WWW_letsencrypt/etc-letsencrypt/
+rsync -e 'ssh -p 1010' -azrd --delete /var/www/* $DestSSHInfo:$DestFolder_WWW_var/
+rsync -e 'ssh -p 1010' -azrd --delete /etc/apache2/* $DestSSHInfo:$DestFolder_WWW_apache2/
+rsync -e 'ssh -p 1010' -azrd --delete /etc/letsencrypt/* $DestSSHInfo:$DestFolder_WWW_letsencrypt/
 ## /dockerData
 rsync -e 'ssh -p 1010' -azrd --delete /dockerData/* $DestSSHInfo:$DestFolder_Docker/
 ## /root
