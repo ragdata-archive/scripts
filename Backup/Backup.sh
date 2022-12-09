@@ -22,6 +22,6 @@ rsync -e 'ssh -p 1010' -azrd --delete /etc/letsencrypt/* $DestSSHInfo:$DestFolde
 ## /dockerData
 rsync -e 'ssh -p 1010' -azrd --delete /dockerData/* $DestSSHInfo:$DestFolder_Docker/
 ## /root
-rsync -e 'ssh -p 1010' -az /root/* $DestSSHInfo:$DestFolder_RootHomeFolder/
+rsync -e 'ssh -p 1010' -azrd --delete /root/* $DestSSHInfo:$DestFolder_RootHomeFolder/
 ## /home/github-ci-runner
 rsync -e 'ssh -p 1010' -azrd --delete /home/github-ci-runner/* $DestSSHInfo:$DestFolder_GHCLI/
