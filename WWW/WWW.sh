@@ -244,12 +244,26 @@ grayCF() {
 siteName=$(dialog --stdout --title "Hostname" --inputbox "What is your site's hostname? (i.e. site.chse.dev)" 0 0)
 clear
 
+# If siteName has more than one period in it:
+if [ "$(echo "$siteName" | grep -o '\.' | wc -l)" -gt 1 ]; then
+    # Remove the first period and everything before it.
+    rootDomain=$(echo "$siteName" | cut -d'.' -f2-)
+else
+    # Otherwise, just use the siteName.
+    rootDomain="$siteName"
+fi
+
 # Ask the user if they want to use Cloudflare.
-dialog --stdout --title "Cloudflare?" --yesno "Are we using Cloudflare for the root domain of $siteName?" 0 0
+dialog --stdout --title "Cloudflare?" --yesno "Are we using Cloudflare for $rootDomain?" 0 0
 isCloudflare=$?
 clear
 if [ "$isCloudflare" -eq 0 ]; then
-    zoneID=$(dialog --stdout --title "Zone ID" --inputbox "What is $siteName's Zone ID?" 0 0)
+    # Look in ~/ddns.sh for the zone ID of the root domain.
+    if grep -q "\$CF" /root/ddns.sh; then
+        zoneID=$(grep "\$CF" /root/ddns.sh | grep "$rootDomain" | cut -d' ' -f2 | head -n 1)
+    else
+        zoneID=$(dialog --stdout --title "Zone ID" --inputbox "What is $rootDomain's Zone ID?" 0 0)
+    fi
     clear
     dialog --stdout --title "Cloudflare Proxy?" --yesno "Are we proxying $siteName through Cloudflare?" 0 0
     cloudflare_proxy_question=$?
