@@ -254,8 +254,18 @@ else
 fi
 
 # Ask the user if they want to use Cloudflare.
-dialog --stdout --title "Cloudflare?" --yesno "Are we using Cloudflare for $rootDomain?" 0 0
-isCloudflare=$?
+# If we have an entry in ~/ddns.sh for this domain, assume we're using Cloudflare.
+if grep -q "\$CF" /root/ddns.sh; then
+    if grep -q " $rootDomain " /root/ddns.sh; then
+        isCloudflare=0
+    else
+        isCloudflare=$(dialog --stdout --title "Cloudflare?" --yesno "Are we using Cloudflare for $rootDomain?" 0 0)
+        isCloudflare=$?
+    fi
+else
+    isCloudflare=$(dialog --stdout --title "Cloudflare?" --yesno "Are we using Cloudflare for $rootDomain?" 0 0)
+    isCloudflare=$?
+fi
 clear
 if [ "$isCloudflare" -eq 0 ]; then
     # Look in ~/ddns.sh for the zone ID of the root domain.
