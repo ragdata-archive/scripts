@@ -261,6 +261,9 @@ if [ "$isCloudflare" -eq 0 ]; then
     # Look in ~/ddns.sh for the zone ID of the root domain.
     if grep -q "\$CF" /root/ddns.sh; then
         zoneID=$(grep "\$CF" /root/ddns.sh | grep "$rootDomain" | cut -d' ' -f2 | head -n 1)
+        if [ -z "$zoneID" ]; then
+            zoneID=$(dialog --stdout --title "Zone ID" --inputbox "What is $rootDomain's Zone ID?" 0 0)
+        fi
     else
         zoneID=$(dialog --stdout --title "Zone ID" --inputbox "What is $rootDomain's Zone ID?" 0 0)
     fi
