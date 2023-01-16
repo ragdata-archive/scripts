@@ -74,6 +74,12 @@ doSimpleHTML() {
 doRedirect() {
     # $1 is hostname
     # $2 is dest
+    # $3 is true (disregard path) or false (keep path)
+    if [ "$3" = "true" ]; then
+        redirect="RedirectMatch ^ https://$2"
+    else
+        redirect="Redirect permanent / https://$2"
+    fi
     echo "<VirtualHost *:80>
 ServerName $1
 Redirect permanent / https://$1/
@@ -82,7 +88,7 @@ Redirect permanent / https://$1/
 <VirtualHost *:443>
 ServerAdmin $apache_server_admin
 ServerName $1
-Redirect permanent / https://$2/
+$redirect
 <IfModule mod_headers.c>
 Header always set Strict-Transport-Security \"max-age=15552000; includeSubDomains\"
 Header always set Permissions-Policy: interest-cohort=()
@@ -308,7 +314,15 @@ elif [ "$optionsForSite" -eq 3 ]; then
 elif [ "$optionsForSite" -eq 4 ]; then
     destSite=$(dialog --stdout --title "Hostname" --inputbox "Where is $siteName going? (i.e. dest.chse.dev)" 0 0)
     clear
-    doRedirect "$siteName" "$destSite"
+    redirectType=$(dialog --stdout --menu "What type of redirect?" 0 0 0 1 "Disregard Path" 2 "Keep Path")
+    clear
+    if [ "$redirectType" -eq 1 ]; then
+        doRedirect "$siteName" "$destSite" "true"
+    elif [ "$redirectType" -eq 2 ]; then
+        doRedirect "$siteName" "$destSite" "false"
+    else
+        exit 1
+    fi
 else
     exit 1
 fi
