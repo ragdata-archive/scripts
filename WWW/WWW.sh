@@ -326,3 +326,5 @@ elif [ "$optionsForSite" -eq 4 ]; then
 else
     exit 1
 fi
+
+systemctl restart apache2
