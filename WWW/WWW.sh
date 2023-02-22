@@ -208,7 +208,7 @@ MIAB_DDNS() {
     MIAB_Link="https://mail.chse.dev/admin/dns/custom"
 
     echo "\$MIAB/$1" >> /root/ddns.sh
-    echo "sleep 3" >> /root/ddns.sh
+    echo "/usr/bin/sleep 3" >> /root/ddns.sh
     # We run this twice just because MIAB drops the ball, sometimes.
     "$MIAB_curl" "$MIAB_Email":"$MIAB_Password" "$MIAB_Link"/"$1"
     "$MIAB_curl" "$MIAB_Email":"$MIAB_Password" "$MIAB_Link"/"$1"
@@ -233,7 +233,7 @@ orangeCF() {
     # $1 is our domain
     # $2 is our zone id
     echo "\$CF $2 $1 true" >> /root/ddns.sh
-    echo "sleep 3" >> /root/ddns.sh
+    echo "/usr/bin/sleep 3" >> /root/ddns.sh
     postCF "$1" "$2" "true"
 }
 
@@ -242,7 +242,7 @@ grayCF() {
     # $1 is our domain
     # $2 is our zone id
     echo "\$CF $2 $1 false" >> /root/ddns.sh
-    echo "sleep 3" >> /root/ddns.sh
+    echo "/usr/bin/sleep 3" >> /root/ddns.sh
     postCF "$1" "$2" "false"
 }
 

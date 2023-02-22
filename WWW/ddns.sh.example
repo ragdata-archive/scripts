@@ -11,10 +11,10 @@ CF="/usr/bin/bash /root/Scripts/WWW/cf_ddns.sh $CF_auth_email $CF_auth_key"
 
 $CF ZONEIDHERE domain.tld true
 # true means orange cloud
-sleep 3
+/usr/bin/sleep 3
 $CF ZONEIDHERE domain.tld false
 # false means gray cloud
-sleep 3
+/usr/bin/sleep 3
 $MIAB/domain.tld
-sleep 3
+/usr/bin/sleep 3
 # [...]
