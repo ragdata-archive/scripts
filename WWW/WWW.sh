@@ -5,7 +5,7 @@ apache_file="/etc/apache2/sites-available/www.conf"
 apache_server_admin="c@chse.dev"
 
 # Check for root, and bail if not root.
-if [ "$(whoami)" != 'root' ]; then
+if [ "$(/usr/bin/whoami)" != 'root' ]; then
     echo -e "Error: You have to execute this script as root.\nMaybe try running the following command:\nsudo !!"
     exit 1
 fi
@@ -21,7 +21,7 @@ fi
 generatePassword() {
     local passwordLength=128
     # shellcheck disable=SC2155,SC2086
-    local generatedPW="$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-$passwordLength};echo;)"
+    local generatedPW="$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | /usr/bin/head -c${1:-$passwordLength};echo;)"
     echo "$generatedPW"
 }
 # shellcheck disable=SC2119
@@ -31,12 +31,12 @@ generatedPassword2="$(generatePassword)"
 
 # Get HTTPS certificate from Let's Encrypt.
 doHTTPS() {
-    sudo systemctl restart apache2
-    sudo certbot certonly --apache -d "$1"
+    /usr/bin/sudo /usr/bin/systemctl restart apache2
+    /usr/bin/sudo /usr/bin/certbot certonly --apache -d "$1"
     sed -i '/#Include \/etc\/letsencrypt\/options-ssl-apache.conf/s/^# *//' $apache_file
     sed -i '/#SSLCertificateFile \/etc\/letsencrypt\/live\/'"$1"'\/fullchain.pem/s/^# *//' $apache_file
     sed -i '/#SSLCertificateKeyFile \/etc\/letsencrypt\/live\/'"$1"'\/privkey.pem/s/^# *//' $apache_file
-    sudo systemctl restart apache2
+    /usr/bin/sudo /usr/bin/systemctl restart apache2
 }
 
 doApacheDocRoot() {
@@ -62,12 +62,12 @@ Header always set Permissions-Policy: interest-cohort=()
 
 # Create a simple HTML website.
 doSimpleHTML() {
-    mkdir /var/www/"$1"
-    chown -R www-data:www-data /var/www/"$1"/
+    /usr/bin/mkdir /var/www/"$1"
+    /usr/bin/chown -R www-data:www-data /var/www/"$1"/
     doApacheDocRoot "$1"
     #doHTTPS "$1"
     echo "ErrorDocument 404 https://$1" >> /var/www/"$1"/.htaccess
-    clear
+    /usr/bin/clear
 }
 
 # Create a redirect to another website.
@@ -139,48 +139,48 @@ doWordPress() {
 
     # Check for WP-CLI
     if [ ! -e "/usr/local/bin/wp" ]; then
-        curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar && chmod +x wp-cli.phar && sudo mv wp-cli.phar /usr/local/bin/wp
+        /usr/bin/curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar && /usr/bin/chmod +x wp-cli.phar && /usr/bin/sudo /usr/bin/mv wp-cli.phar /usr/local/bin/wp
     fi
-    sudo wp cli update
-    mkdir /var/www/"$1"
-    chown -R www-data:www-data /var/www/"$1"/
+    /usr/bin/sudo /usr/local/bin/wp cli update
+    /usr/bin/mkdir /var/www/"$1"
+    /usr/bin/chown -R www-data:www-data /var/www/"$1"/
     doApacheDocRoot "$1"
     #doHTTPS "$1"
     cd /var/www/"$1"/ || exit
-    wget http://wordpress.org/latest.tar.gz
-    tar -xzvf latest.tar.gz
-    mv wordpress/* .
-    rm -r wordpress/
-    rm latest.tar.gz
-    mysql -uroot -p"$DB_PW" -e "CREATE DATABASE $DB_Name;"
-    mysql -uroot -p"$DB_PW" -e "CREATE USER $DB_Name@localhost IDENTIFIED BY '$generatedPassword1';"
-    mysql -uroot -p"$DB_PW" -e "GRANT ALL PRIVILEGES ON $DB_Name.* TO '$DB_Name'@'localhost';"
-    mysql -uroot -p"$DB_PW" -e "FLUSH PRIVILEGES;"
-    wp config create --dbname="$DB_Name" --dbuser="$DB_Name" --dbpass="$generatedPassword1" --allow-root
-    wp core install --url=https://"$1" --title="$1" --admin_user="$WP_Username" --admin_password="$generatedPassword2" --admin_email="$apache_server_admin" --allow-root
-    wp plugin install maintenance --activate --allow-root
-    wp theme delete twentynineteen --allow-root
-    wp theme delete twentytwenty --allow-root
-    wp site empty --yes --allow-root
-    wp plugin delete akismet --allow-root
-    wp plugin delete hello --allow-root
-    wp rewrite structure '/%postname%/' --allow-root
-    wp option update default_comment_status closed --allow-root
-    wp post create --post_type=page --post_status=publish --post_title='Home' --allow-root
-    wp plugin install all-404-redirect-to-homepage --activate --allow-root
-    wp plugin install autoptimize --activate --allow-root
-    wp plugin install insert-headers-and-footers --activate --allow-root
-    wp plugin install better-wp-security --activate --allow-root
-    wp plugin install redirection --activate --allow-root
-    wp plugin install wp-super-cache --activate --allow-root
-    wp plugin install wordpress-seo --activate --allow-root
-    #wp plugin install adminimize --activate --allow-root
-    wp plugin install capability-manager-enhanced --activate --allow-root
-    wp plugin install host-webfonts-local --activate --allow-root
-    wp plugin install hcaptcha-for-forms-and-more --activate --allow-root
-    chown -R www-data:www-data /var/www/"$1"/
+    /usr/bin/wget http://wordpress.org/latest.tar.gz
+    /usr/bin/tar -xzvf latest.tar.gz
+    /usr/bin/mv wordpress/* .
+    /usr/bin/rm -r wordpress/
+    /usr/bin/rm latest.tar.gz
+    /usr/bin/mysql -uroot -p"$DB_PW" -e "CREATE DATABASE $DB_Name;"
+    /usr/bin/mysql -uroot -p"$DB_PW" -e "CREATE USER $DB_Name@localhost IDENTIFIED BY '$generatedPassword1';"
+    /usr/bin/mysql -uroot -p"$DB_PW" -e "GRANT ALL PRIVILEGES ON $DB_Name.* TO '$DB_Name'@'localhost';"
+    /usr/bin/mysql -uroot -p"$DB_PW" -e "FLUSH PRIVILEGES;"
+    /usr/local/bin/wp config create --dbname="$DB_Name" --dbuser="$DB_Name" --dbpass="$generatedPassword1" --allow-root
+    /usr/local/bin/wp core install --url=https://"$1" --title="$1" --admin_user="$WP_Username" --admin_password="$generatedPassword2" --admin_email="$apache_server_admin" --allow-root
+    /usr/local/bin/wp plugin install maintenance --activate --allow-root
+    /usr/local/bin/wp theme delete twentynineteen --allow-root
+    /usr/local/bin/wp theme delete twentytwenty --allow-root
+    /usr/local/bin/wp site empty --yes --allow-root
+    /usr/local/bin/wp plugin delete akismet --allow-root
+    /usr/local/bin/wp plugin delete hello --allow-root
+    /usr/local/bin/wp rewrite structure '/%postname%/' --allow-root
+    /usr/local/bin/wp option update default_comment_status closed --allow-root
+    /usr/local/bin/wp post create --post_type=page --post_status=publish --post_title='Home' --allow-root
+    /usr/local/bin/wp plugin install all-404-redirect-to-homepage --activate --allow-root
+    /usr/local/bin/wp plugin install autoptimize --activate --allow-root
+    /usr/local/bin/wp plugin install insert-headers-and-footers --activate --allow-root
+    /usr/local/bin/wp plugin install better-wp-security --activate --allow-root
+    /usr/local/bin/wp plugin install redirection --activate --allow-root
+    /usr/local/bin/wp plugin install wp-super-cache --activate --allow-root
+    /usr/local/bin/wp plugin install wordpress-seo --activate --allow-root
+    #/usr/local/bin/wp plugin install adminimize --activate --allow-root
+    /usr/local/bin/wp plugin install capability-manager-enhanced --activate --allow-root
+    /usr/local/bin/wp plugin install host-webfonts-local --activate --allow-root
+    /usr/local/bin/wp plugin install hcaptcha-for-forms-and-more --activate --allow-root
+    /usr/bin/chown -R www-data:www-data /var/www/"$1"/
 
-    clear
+    /usr/bin/clear
     echo Your WP Login:
     echo https://"$1"/wp-admin
     echo "$WP_Username"
@@ -202,7 +202,7 @@ doWordPress() {
 
 # Add DNS record to MIAB.
 MIAB_DDNS() {
-    MIAB_curl="curl -X PUT --user"
+    MIAB_curl="/usr/bin/curl -X PUT --user"
     MIAB_Email="ch@chasehall.net"
     MIAB_Password=$(<~/MIAB_PW.txt)
     MIAB_Link="https://mail.chse.dev/admin/dns/custom"
@@ -216,11 +216,11 @@ MIAB_DDNS() {
 
 # POST to CloudFlare with our domain & IP.
 postCF() {
-    ip=$(curl -4 https://icanhazip.com/)
+    ip=$(/usr/bin/curl -4 https://icanhazip.com/)
     auth_email="cf@chse.dev"
     auth_key=$(<~/CF_auth_key.txt)
 
-    curl -X POST "https://api.cloudflare.com/client/v4/zones/$2/dns_records" \
+    /usr/bin/curl -X POST "https://api.cloudflare.com/client/v4/zones/$2/dns_records" \
         -H "X-Auth-Email: $auth_email" \
         -H "X-Auth-Key: $auth_key" \
         -H "Content-Type: application/json" \
@@ -247,13 +247,13 @@ grayCF() {
 }
 
 # Ask the user what their hostname is.
-siteName=$(dialog --stdout --title "Hostname" --inputbox "What is your site's hostname? (i.e. site.chse.dev)" 0 0)
-clear
+siteName=$(/usr/bin/dialog --stdout --title "Hostname" --inputbox "What is your site's hostname? (i.e. site.chse.dev)" 0 0)
+/usr/bin/clear
 
 # If siteName has more than one period in it:
-if [ "$(echo "$siteName" | grep -o '\.' | wc -l)" -gt 1 ]; then
+if [ "$(echo "$siteName" | /usr/bin/grep -o '\.' | /usr/bin/wc -l)" -gt 1 ]; then
     # Remove the first period and everything before it.
-    rootDomain=$(echo "$siteName" | cut -d'.' -f2-)
+    rootDomain=$(echo "$siteName" | /usr/bin/cut -d'.' -f2-)
 else
     # Otherwise, just use the siteName.
     rootDomain="$siteName"
@@ -261,32 +261,32 @@ fi
 
 # Ask the user if they want to use Cloudflare.
 # If we have an entry in ~/ddns.sh for this domain, assume we're using Cloudflare.
-if grep -q "\$CF" /root/ddns.sh; then
-    if grep -q " $rootDomain " /root/ddns.sh; then
+if /usr/bin/grep -q "\$CF" /root/ddns.sh; then
+    if /usr/bin/grep -q " $rootDomain " /root/ddns.sh; then
         isCloudflare=0
     else
-        isCloudflare=$(dialog --stdout --title "Cloudflare?" --yesno "Are we using Cloudflare for $rootDomain?" 0 0)
+        isCloudflare=$(/usr/bin/dialog --stdout --title "Cloudflare?" --yesno "Are we using Cloudflare for $rootDomain?" 0 0)
         isCloudflare=$?
     fi
 else
-    isCloudflare=$(dialog --stdout --title "Cloudflare?" --yesno "Are we using Cloudflare for $rootDomain?" 0 0)
+    isCloudflare=$(/usr/bin/dialog --stdout --title "Cloudflare?" --yesno "Are we using Cloudflare for $rootDomain?" 0 0)
     isCloudflare=$?
 fi
-clear
+/usr/bin/clear
 if [ "$isCloudflare" -eq 0 ]; then
     # Look in ~/ddns.sh for the zone ID of the root domain.
-    if grep -q "\$CF" /root/ddns.sh; then
-        zoneID=$(grep "\$CF" /root/ddns.sh | grep "$rootDomain" | cut -d' ' -f2 | head -n 1)
+    if /usr/bin/grep -q "\$CF" /root/ddns.sh; then
+        zoneID=$(/usr/bin/grep "\$CF" /root/ddns.sh | /usr/bin/grep "$rootDomain" | cut -d' ' -f2 | head -n 1)
         if [ -z "$zoneID" ]; then
-            zoneID=$(dialog --stdout --title "Zone ID" --inputbox "What is $rootDomain's Zone ID?" 0 0)
+            zoneID=$(/usr/bin/dialog --stdout --title "Zone ID" --inputbox "What is $rootDomain's Zone ID?" 0 0)
         fi
     else
-        zoneID=$(dialog --stdout --title "Zone ID" --inputbox "What is $rootDomain's Zone ID?" 0 0)
+        zoneID=$(/usr/bin/dialog --stdout --title "Zone ID" --inputbox "What is $rootDomain's Zone ID?" 0 0)
     fi
-    clear
-    dialog --stdout --title "Cloudflare Proxy?" --yesno "Are we proxying $siteName through Cloudflare?" 0 0
+    /usr/bin/clear
+    /usr/bin/dialog --stdout --title "Cloudflare Proxy?" --yesno "Are we proxying $siteName through Cloudflare?" 0 0
     cloudflare_proxy_question=$?
-    clear
+    /usr/bin/clear
     if [ "$cloudflare_proxy_question" -eq 0 ]; then
         orangeCF "$siteName" "$zoneID"
     elif [ "$cloudflare_proxy_question" -eq 1 ]; then
@@ -301,21 +301,21 @@ else
 fi
 
 # Ask the user what type of site they want to use.
-optionsForSite=$(dialog --stdout --menu "What type of site do you want?" 0 0 0 1 "WordPress" 2 "Reverse Proxy" 3 "HTTP" 4 "Redirect")
-clear
+optionsForSite=$(/usr/bin/dialog --stdout --menu "What type of site do you want?" 0 0 0 1 "WordPress" 2 "Reverse Proxy" 3 "HTTP" 4 "Redirect")
+/usr/bin/clear
 if [ "$optionsForSite" -eq 1 ]; then
     doWordPress "$siteName"
 elif [ "$optionsForSite" -eq 2 ]; then
-    destProxySite=$(dialog --stdout --title "Reverse Proxy" --inputbox "Where is $siteName going? (i.e. 192.168.86.12:1337)" 0 0)
-    clear
+    destProxySite=$(/usr/bin/dialog --stdout --title "Reverse Proxy" --inputbox "Where is $siteName going? (i.e. 192.168.86.12:1337)" 0 0)
+    /usr/bin/clear
     doReverseProxy "$siteName" "$destProxySite"
 elif [ "$optionsForSite" -eq 3 ]; then
     doSimpleHTML "$siteName"
 elif [ "$optionsForSite" -eq 4 ]; then
-    destSite=$(dialog --stdout --title "Hostname" --inputbox "Where is $siteName going? (i.e. dest.chse.dev)" 0 0)
-    clear
-    redirectType=$(dialog --stdout --menu "What type of redirect?" 0 0 0 1 "Disregard Path" 2 "Keep Path")
-    clear
+    destSite=$(/usr/bin/dialog --stdout --title "Hostname" --inputbox "Where is $siteName going? (i.e. dest.chse.dev)" 0 0)
+    /usr/bin/clear
+    redirectType=$(/usr/bin/dialog --stdout --menu "What type of redirect?" 0 0 0 1 "Disregard Path" 2 "Keep Path")
+    /usr/bin/clear
     if [ "$redirectType" -eq 1 ]; then
         doRedirect "$siteName" "$destSite" "true"
     elif [ "$redirectType" -eq 2 ]; then
@@ -327,4 +327,4 @@ else
     exit 1
 fi
 
-systemctl restart apache2
+/usr/bin/systemctl restart apache2
