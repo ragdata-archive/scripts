@@ -200,20 +200,6 @@ doWordPress() {
     echo WooCommerce
 }
 
-# Add DNS record to MIAB.
-MIAB_DDNS() {
-    MIAB_curl="/usr/bin/curl -X PUT --user"
-    MIAB_Email="ch@chasehall.net"
-    MIAB_Password=$(<~/MIAB_PW.txt)
-    MIAB_Link="https://mail.chse.dev/admin/dns/custom"
-
-    echo "\$MIAB/$1" >> /root/ddns.sh
-    echo "/usr/bin/sleep 3" >> /root/ddns.sh
-    # We run this twice just because MIAB drops the ball, sometimes.
-    "$MIAB_curl" "$MIAB_Email":"$MIAB_Password" "$MIAB_Link"/"$1"
-    "$MIAB_curl" "$MIAB_Email":"$MIAB_Password" "$MIAB_Link"/"$1"
-}
-
 # POST to CloudFlare with our domain & IP.
 postCF() {
     ip=$(/usr/bin/curl -4 https://icanhazip.com/)
@@ -259,43 +245,23 @@ else
     rootDomain="$siteName"
 fi
 
-# Ask the user if they want to use Cloudflare.
-# If we have an entry in ~/ddns.sh for this domain, assume we're using Cloudflare.
+# Look in ~/ddns.sh for the zone ID of the root domain.
 if /usr/bin/grep -q "\$CF" /root/ddns.sh; then
-    if /usr/bin/grep -q " $rootDomain " /root/ddns.sh; then
-        isCloudflare=0
-    else
-        isCloudflare=$(/usr/bin/dialog --stdout --title "Cloudflare?" --yesno "Are we using Cloudflare for $rootDomain?" 0 0)
-        isCloudflare=$?
+    zoneID=$(/usr/bin/grep "\$CF" /root/ddns.sh | /usr/bin/grep "$rootDomain" | cut -d' ' -f2 | head -n 1)
+    if [ -z "$zoneID" ]; then
+        zoneID=$(/usr/bin/dialog --stdout --title "Cloudflare Zone ID" --inputbox "What is $rootDomain's Zone ID?" 0 0)
     fi
 else
-    isCloudflare=$(/usr/bin/dialog --stdout --title "Cloudflare?" --yesno "Are we using Cloudflare for $rootDomain?" 0 0)
-    isCloudflare=$?
+    zoneID=$(/usr/bin/dialog --stdout --title "Cloudflare Zone ID" --inputbox "What is $rootDomain's Zone ID?" 0 0)
 fi
 /usr/bin/clear
-if [ "$isCloudflare" -eq 0 ]; then
-    # Look in ~/ddns.sh for the zone ID of the root domain.
-    if /usr/bin/grep -q "\$CF" /root/ddns.sh; then
-        zoneID=$(/usr/bin/grep "\$CF" /root/ddns.sh | /usr/bin/grep "$rootDomain" | cut -d' ' -f2 | head -n 1)
-        if [ -z "$zoneID" ]; then
-            zoneID=$(/usr/bin/dialog --stdout --title "Zone ID" --inputbox "What is $rootDomain's Zone ID?" 0 0)
-        fi
-    else
-        zoneID=$(/usr/bin/dialog --stdout --title "Zone ID" --inputbox "What is $rootDomain's Zone ID?" 0 0)
-    fi
-    /usr/bin/clear
-    /usr/bin/dialog --stdout --title "Cloudflare Proxy?" --yesno "Are we proxying $siteName through Cloudflare?" 0 0
-    cloudflare_proxy_question=$?
-    /usr/bin/clear
-    if [ "$cloudflare_proxy_question" -eq 0 ]; then
-        orangeCF "$siteName" "$zoneID"
-    elif [ "$cloudflare_proxy_question" -eq 1 ]; then
-        grayCF "$siteName" "$zoneID"
-    else
-        exit 1
-    fi
-elif [ "$isCloudflare" -eq 1 ]; then
-    MIAB_DDNS "$siteName"
+/usr/bin/dialog --stdout --title "Cloudflare Proxy?" --yesno "Are we proxying $siteName through Cloudflare?" 0 0
+cloudflare_proxy_question=$?
+/usr/bin/clear
+if [ "$cloudflare_proxy_question" -eq 0 ]; then
+    orangeCF "$siteName" "$zoneID"
+elif [ "$cloudflare_proxy_question" -eq 1 ]; then
+    grayCF "$siteName" "$zoneID"
 else
     exit 1
 fi
