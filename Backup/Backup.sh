@@ -12,7 +12,7 @@ DestSSHInfo="root@real.chse.dev"
 
 # Main Server
 ## MySQL
-/usr/bin/mysqldump --all-databases --single-transaction --quick --lock-tables=false -u root -p"$DB_PW" > /tmp/sql-dump.sql
+/usr/bin/docker exec mysql sh -c 'exec mysqldump --all-databases --single-transaction --quick --lock-tables=false -u root -p'"$DB_PW" > /tmp/sql-dump.sql
 /usr/bin/rsync -e 'ssh -p 1010' -az /tmp/sql-dump.sql $DestSSHInfo:$DestFolder_WWW/WWW-SQL-Dump.sql
 /usr/bin/rm /tmp/sql-dump.sql
 ## /var/www, /etc/apache2, /etc/letsencrypt

@@ -152,10 +152,10 @@ doWordPress() {
     /usr/bin/mv wordpress/* .
     /usr/bin/rm -r wordpress/
     /usr/bin/rm latest.tar.gz
-    /usr/bin/mysql -uroot -p"$DB_PW" -e "CREATE DATABASE $DB_Name;"
-    /usr/bin/mysql -uroot -p"$DB_PW" -e "CREATE USER $DB_Name@localhost IDENTIFIED BY '$generatedPassword1';"
-    /usr/bin/mysql -uroot -p"$DB_PW" -e "GRANT ALL PRIVILEGES ON $DB_Name.* TO '$DB_Name'@'localhost';"
-    /usr/bin/mysql -uroot -p"$DB_PW" -e "FLUSH PRIVILEGES;"
+    /usr/bin/docker exec mysql sh -c 'exec mysql -u root -p'"$DB_PW"' -e "CREATE DATABASE '"$DB_Name"';"'
+    /usr/bin/docker exec mysql sh -c 'exec mysql -u root -p'"$DB_PW"' -e "CREATE USER '"$DB_Name"'@localhost IDENTIFIED BY '"$generatedPassword1"';"'
+    /usr/bin/docker exec mysql sh -c 'exec mysql -u root -p'"$DB_PW"' -e "GRANT ALL PRIVILEGES ON '"$DB_Name"'.* TO '"$DB_Name"'@localhost;"'
+    /usr/bin/docker exec mysql sh -c 'exec mysql -u root -p'"$DB_PW"' -e "FLUSH PRIVILEGES;"'
     /usr/local/bin/wp config create --dbname="$DB_Name" --dbuser="$DB_Name" --dbpass="$generatedPassword1" --allow-root
     /usr/local/bin/wp core install --url=https://"$1" --title="$1" --admin_user="$WP_Username" --admin_password="$generatedPassword2" --admin_email="$apache_server_admin" --allow-root
     /usr/local/bin/wp plugin install maintenance --activate --allow-root
